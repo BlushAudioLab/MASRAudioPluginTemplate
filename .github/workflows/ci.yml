@@ -1,0 +1,43 @@
+name: Build MASRAudioPluginTemplate
+
+on:
+  push:
+    branches: [ "pipeline-dev" ]
+  pull_request:
+    branches: [ "pipeline-dev" ]
+
+env:
+  PLUGIN_NAME: MASRAudioPluginTemplate
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Linux dependencies step removed as Ubuntu is no longer in the matrix
+
+    - name: Cache CPM dependencies
+      id: cache-cpm
+      uses: actions/cache@v3
+      with:
+        path: "**/cmake/CPM_*.cmake"
+        key: ${{ runner.os }}-cpm
+
+    - name: Configure CMake
+      run: cmake -B build
+
+    - name: Build project
+      run: cmake --build build --config Release
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.PLUGIN_NAME }}-${{ matrix.os }}
+        path: |
+          build/${{ env.PLUGIN_NAME }}_artefacts/Release/
+          build/lib/Release/ # for windows .lib
